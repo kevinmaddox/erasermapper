@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Service
+ServiceTypes=Krita/PythonPlugin
+X-KDE-Library=eraser_mapper
+X-Python-2-Compatible=false
+X-Krita-Manual=Manual.html
+Name=Eraser Mapper
+Comment=Allows you to create brush mappings via the eraser shortcut
