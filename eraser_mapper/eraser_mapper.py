@@ -1,7 +1,7 @@
 # BBD's Krita Script Starter Feb 2018
 
-from krita import (Krita, Extension)
-from PyQt5.QtCore import (Qt, QSize)
+from krita import (Extension, Krita)
+from PyQt5.QtCore import (qDebug, QSize, Qt)
 from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QGroupBox, QHBoxLayout,
                              QLabel, QListWidget, QListWidgetItem, QPushButton,
                              QVBoxLayout)
@@ -11,40 +11,111 @@ from .dual_linked_list_widget import DualLinkedListWidget
 EXTENSION_ID = 'pykrita_eraser_mapper'
 MENU_ENTRY = 'Eraser Mapper'
 
-
 class EraserMapper(Extension):
 
     def __init__(self, parent):
         # Always initialise the superclass.
         # This is necessary to create the underlying C++ object
         super().__init__(parent)
-
+        
     def setup(self):
-        self.eraserPreset = ''
-        self.activePresets = []
-        self.readSettings()
-    
-    def readSettings(self):
-        self.eraserPreset = Application.readSetting(
-            '', 'eraserMapperEraser', '')
-        self.activePresets = Application.readSetting(
-            '', 'eraserMapperActivePresets', '').split(',')
+        self.activePresetNames = []
+        self.eraserPreset = None
+        self.lastBrushPreset = None
+        
+        self.activePresetNames = Application.readSetting(
+            '', 'eraserMapperActivePresetNames', '').split(',')
+        eraserPresetName = Application.readSetting(
+            '', 'eraserMapperEraserPreset', '')
+        lastBrushPresetName = Application.readSetting(
+            '', 'eraserMappeLastBrushPreset', '')
+        
+        self.assignEraserPreset(eraserPresetName)
+        self.assignLastBrushPreset(lastBrushPresetName)
     
     def writeSettings(self):
-        Application.writeSetting('', 'eraserMapperEraser', self.eraserPreset)
         Application.writeSetting(
-            '', 'eraserMapperActivePresets', ','.join(self.activePresets))
+            '', 'eraserMapperActivePresetNames', ','.join(self.activePresetNames))
+        Application.writeSetting(
+            '', 'eraserMapperEraserPreset', self.eraserPreset.name())
+        Application.writeSetting(
+            '', 'eraserMapperLastBrushPreset', self.lastBrushPreset.name())
 
     def createActions(self, window):
-        action = window.createAction(EXTENSION_ID, MENU_ENTRY, "tools/scripts")
         # parameter 1 = the name that Krita uses to identify the action
         # parameter 2 = the text to be added to the menu entry for this script
         # parameter 3 = location of menu entry
+        
+        action = window.createAction(EXTENSION_ID, MENU_ENTRY, "tools/scripts")
         action.triggered.connect(self.action_triggered)
+        
+        eraserAction = window.createAction(
+            'pykrita_eraser_mapper_toggle_eraser', 'Eraser', '')
+        eraserAction.triggered.connect(self.handleEraser)
+        
+        lastBrushAction = window.createAction(
+            'pykrita_eraser_mapper_freehand_brush_tool', 'Freehand Brush Tool', '')
+        lastBrushAction.triggered.connect(self.handleLastBrush)
+        
+        #TODO: On preset change in any way, do handleLastBrush
+    
+    def handleEraser(self):
+        window = Application.activeWindow()
+        # Switch to brush tool if necessary.
+        Application.action("KritaShape/KisToolBrush").trigger()
+        # Get currently active preset.
+        preset = window.views()[0].currentBrushPreset()
+        # Bail out if we're already erasing.
+        if preset.name() == self.eraserPreset.name():
+            return
+        # Check if preset should toggle transparency or brush.
+        if preset.name() in self.activePresetNames:
+            window.views()[0].activateResource(self.eraserPreset)
+            self.lastBrushPreset = preset
+        else:
+            kritaEraserAction = Application.action("erase_action")
+            if not kritaEraserAction.isChecked():
+                kritaEraserAction.trigger()
+    
+    def handleLastBrush(self):
+        window = Application.activeWindow()
+        # Switch to brush tool if necessary.
+        Application.action("KritaShape/KisToolBrush").trigger()
+        # Switch to last preset if we're currently using the eraser brush.
+        preset = window.views()[0].currentBrushPreset()
+        if preset.name() == self.eraserPreset.name():
+            window.views()[0].activateResource(self.lastBrushPreset)
+        # Disable eraser mask mode if it's active.
+        kritaEraserAction = Application.action("erase_action")
+        if kritaEraserAction.isChecked():
+            kritaEraserAction.trigger()
+    
+    def assignEraserPreset(self, presetName):
+        presets = Application.resources("preset")
+        
+        # Attempt to find preset by name.
+        for name, preset in presets.items():
+            if name == presetName:
+                self.eraserPreset = preset
+                return
+        
+        # Otherwise, default to first preset.
+        self.eraserPreset = list(presets.values())[0]
+    
+    def assignLastBrushPreset(self, presetName):
+        presets = Application.resources("preset")
+        
+        # Attempt to find preset by name.
+        for name, preset in presets.items():
+            if name == presetName:
+                self.lastBrushPreset = preset
+                return
+        
+        # Otherwise, default to first preset.
+        self.lastBrushPreset = list(presets.values())[0]
 
     def action_triggered(self):
         self.uiEraserMapper = UIEraserMapper(self)
-
 
 class UIEraserMapper(QDialog):
 
@@ -70,7 +141,7 @@ class UIEraserMapper(QDialog):
         self.eraserChooser.currentRowChanged.connect(self.selectEraser)
         self.eraserChooser.setCurrentRow(self.eraserChooser.row(
             self.eraserChooser.findItems(
-            self.eraserMapper.eraserPreset, Qt.MatchExactly)[0]))
+            self.eraserMapper.eraserPreset.name(), Qt.MatchExactly)[0]))
         
         eraserChooserGroupLayout = QVBoxLayout()
         eraserChooserGroupLayout.addWidget(self.eraserChooser)
@@ -95,18 +166,18 @@ class UIEraserMapper(QDialog):
         self.presetLists.setTitleLeft("Will Toggle Transparency Effect")
         self.presetLists.setTitleRight("Will Toggle Brush Preset")
         self.presetLists.setSortingEnabled(True)
-        inactivePresets = []
-        activePresets = []
+        inactivePresetList = []
+        activePresetList = []
         for name, preset in Application.resources("preset").items():
             item = QListWidgetItem()
             item.setText(name)
             item.setIcon(QIcon(QPixmap.fromImage(preset.image())))
-            if name in self.eraserMapper.activePresets:
-                activePresets.append(item)
+            if name in self.eraserMapper.activePresetNames:
+                activePresetList.append(item)
             else:
-                inactivePresets.append(item)
-        self.presetLists.appendToLeft(inactivePresets)
-        self.presetLists.appendToRight(activePresets)
+                inactivePresetList.append(item)
+        self.presetLists.appendToLeft(inactivePresetList)
+        self.presetLists.appendToRight(activePresetList)
         
         # Add OK/Cancel buttons to the window.
         buttonBox = QDialogButtonBox(self)
@@ -130,12 +201,12 @@ class UIEraserMapper(QDialog):
     
     def accept(self):
         # Store new settings.
-        self.eraserMapper.eraserPreset = self.eraserChooser.currentItem().text()
+        self.eraserMapper.assignEraserPreset(self.eraserChooser.currentItem().text())
         
-        self.eraserMapper.activePresets.clear()
+        self.eraserMapper.activePresetNames.clear()
         right = self.presetLists.getWidgetRight()
         for i in range(right.count()):
-            self.eraserMapper.activePresets.append(right.item(i).text())
+            self.eraserMapper.activePresetNames.append(right.item(i).text())
         
         # Save settings to kritarc.
         self.eraserMapper.writeSettings()

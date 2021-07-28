@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ActionCollection version="2" name="Scripts">
+  <Actions category="Scripts">
+
+    <text>Eraser Mapper</text>
+    
+    <Action name="pykrita_eraser_mapper_toggle_eraser">
+      <icon></icon>
+      <text>Eraser</text>
+      <whatsThis></whatsThis>
+      <toolTip></toolTip>
+      <iconText></iconText>
+      <activationFlags></activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut></shortcut>
+      <isCheckable>false</isCheckable>
+      <statusTip></statusTip>
+    </Action>
+    
+    <Action name="pykrita_eraser_mapper_freehand_brush_tool">
+      <icon></icon>
+      <text>Freehand Brush Tool</text>
+      <whatsThis></whatsThis>
+      <toolTip></toolTip>
+      <iconText></iconText>
+      <activationFlags></activationFlags>
+      <activationConditions>0</activationConditions>
+      <shortcut></shortcut>
+      <isCheckable>false</isCheckable>
+      <statusTip></statusTip>
+    </Action>
+
+  </Actions>
+</ActionCollection>
