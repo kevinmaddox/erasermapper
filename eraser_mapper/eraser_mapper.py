@@ -2,9 +2,9 @@
 
 from krita import (Extension, Krita)
 from PyQt5.QtCore import (qDebug, QSize, Qt)
-from PyQt5.QtWidgets import (QDialog, QDialogButtonBox, QGroupBox, QHBoxLayout,
-                             QLabel, QListWidget, QListWidgetItem, QPushButton,
-                             QVBoxLayout)
+from PyQt5.QtWidgets import (QCheckBox, QDialog, QDialogButtonBox, QGroupBox,
+                             QHBoxLayout, QLabel, QListWidget, QListWidgetItem,
+                             QPushButton, QVBoxLayout)
 from PyQt5.QtGui import (QIcon, QPixmap)
 from .dual_linked_list_widget import DualLinkedListWidget
 
@@ -19,9 +19,11 @@ class EraserMapper(Extension):
         super().__init__(parent)
         
     def setup(self):
+        # Load saved settings from kritarc.
         self.activePresetNames = []
         self.eraserPreset = None
         self.lastBrushPreset = None
+        self.sameKeyToggle = False
         
         self.activePresetNames = Application.readSetting(
             '', 'eraserMapperActivePresetNames', '').split(',')
@@ -29,23 +31,28 @@ class EraserMapper(Extension):
             '', 'eraserMapperEraserPreset', '')
         lastBrushPresetName = Application.readSetting(
             '', 'eraserMappeLastBrushPreset', '')
+        sameKeySwitchingModeString = Application.readSetting(
+            '', 'eraserMapperSameKeyToggle', '')
         
         self.assignEraserPreset(eraserPresetName)
         self.assignLastBrushPreset(lastBrushPresetName)
-    
+        self.sameKeyToggle = (sameKeySwitchingModeString == 'True')
+        
     def writeSettings(self):
         Application.writeSetting(
-            '', 'eraserMapperActivePresetNames', ','.join(self.activePresetNames))
+            '', 'eraserMapperActivePresetNames',
+            ','.join(self.activePresetNames))
         Application.writeSetting(
             '', 'eraserMapperEraserPreset', self.eraserPreset.name())
         Application.writeSetting(
             '', 'eraserMapperLastBrushPreset', self.lastBrushPreset.name())
+        Application.writeSetting(
+            '', 'eraserMapperSameKeyToggle', str(self.sameKeyToggle))
 
     def createActions(self, window):
         # parameter 1 = the name that Krita uses to identify the action
         # parameter 2 = the text to be added to the menu entry for this script
         # parameter 3 = location of menu entry
-        
         action = window.createAction(EXTENSION_ID, MENU_ENTRY, "tools/scripts")
         action.triggered.connect(self.action_triggered)
         
@@ -54,28 +61,32 @@ class EraserMapper(Extension):
         eraserAction.triggered.connect(self.handleEraser)
         
         lastBrushAction = window.createAction(
-            'pykrita_eraser_mapper_freehand_brush_tool', 'Freehand Brush Tool', '')
+            'pykrita_eraser_mapper_freehand_brush_tool', 'Freehand Brush Tool',
+            '')
         lastBrushAction.triggered.connect(self.handleLastBrush)
         
-        #TODO: On preset change in any way, do handleLastBrush
-    
     def handleEraser(self):
         window = Application.activeWindow()
         # Switch to brush tool if necessary.
         Application.action("KritaShape/KisToolBrush").trigger()
         # Get currently active preset.
         preset = window.views()[0].currentBrushPreset()
-        # Bail out if we're already erasing.
-        if preset.name() == self.eraserPreset.name():
-            return
-        # Check if preset should toggle transparency or brush.
-        if preset.name() in self.activePresetNames:
-            window.views()[0].activateResource(self.eraserPreset)
-            self.lastBrushPreset = preset
-        else:
-            kritaEraserAction = Application.action("erase_action")
-            if not kritaEraserAction.isChecked():
-                kritaEraserAction.trigger()
+        
+        # Switch tool to either brush or transparency.
+        if preset.name() != self.eraserPreset.name():
+            # If we're in drawing mode, then switch to eraser.
+            if preset.name() in self.activePresetNames:
+                # Brush
+                window.views()[0].activateResource(self.eraserPreset)
+                self.lastBrushPreset = preset
+            else:
+                # Transparency
+                kritaEraserAction = Application.action("erase_action")
+                if self.sameKeyToggle or not kritaEraserAction.isChecked():
+                    kritaEraserAction.trigger()
+        elif self.sameKeyToggle and preset.name() == self.eraserPreset.name():
+            # If erasing, switch to drawing if same-key switching is enabled.
+            self.handleLastBrush()
     
     def handleLastBrush(self):
         window = Application.activeWindow()
@@ -179,6 +190,11 @@ class UIEraserMapper(QDialog):
         self.presetLists.appendToLeft(inactivePresetList)
         self.presetLists.appendToRight(activePresetList)
         
+        # Create checkbox for same-key-switch mode.
+        self.sameKeyCheckBox = QCheckBox()
+        self.sameKeyCheckBox.setText('Enable same-key switching')
+        self.sameKeyCheckBox.setChecked(self.eraserMapper.sameKeyToggle)
+        
         # Add OK/Cancel buttons to the window.
         buttonBox = QDialogButtonBox(self)
         buttonBox.setOrientation(Qt.Horizontal)
@@ -192,6 +208,7 @@ class UIEraserMapper(QDialog):
         layout.addWidget(QLabel(i18n("Eraser Preset")))
         layout.addWidget(self.eraserButton)
         layout.addLayout(self.presetLists)
+        layout.addWidget(self.sameKeyCheckBox)
         layout.addWidget(buttonBox)
         
         # Display window.
@@ -201,12 +218,15 @@ class UIEraserMapper(QDialog):
     
     def accept(self):
         # Store new settings.
-        self.eraserMapper.assignEraserPreset(self.eraserChooser.currentItem().text())
+        self.eraserMapper.assignEraserPreset(
+            self.eraserChooser.currentItem().text())
         
         self.eraserMapper.activePresetNames.clear()
         right = self.presetLists.getWidgetRight()
         for i in range(right.count()):
             self.eraserMapper.activePresetNames.append(right.item(i).text())
+        
+        self.eraserMapper.sameKeyToggle = self.sameKeyCheckBox.isChecked()
         
         # Save settings to kritarc.
         self.eraserMapper.writeSettings()

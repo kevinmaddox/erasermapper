@@ -1,6 +1,5 @@
 from PyQt5.QtWidgets import (QGroupBox, QHBoxLayout, QListWidget, QPushButton,
                              QSizePolicy, QSpacerItem, QVBoxLayout)
-from PyQt5.QtGui import (QIcon, QPixmap)
 
 class DualLinkedListWidget(QHBoxLayout):
 
