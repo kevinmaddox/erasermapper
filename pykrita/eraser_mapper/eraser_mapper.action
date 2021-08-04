@@ -5,26 +5,26 @@
     <text>Eraser Mapper</text>
     
     <Action name="pykrita_eraser_mapper_toggle_eraser">
-      <icon></icon>
+      <icon>draw-eraser</icon>
       <text>Eraser</text>
       <whatsThis></whatsThis>
-      <toolTip></toolTip>
-      <iconText></iconText>
+      <toolTip>Eraser</toolTip>
+      <iconText>Eraser</iconText>
       <activationFlags></activationFlags>
-      <activationConditions>0</activationConditions>
+      <activationConditions></activationConditions>
       <shortcut></shortcut>
       <isCheckable>false</isCheckable>
       <statusTip></statusTip>
     </Action>
     
     <Action name="pykrita_eraser_mapper_freehand_brush_tool">
-      <icon></icon>
+      <icon>krita_tool_freehand</icon>
       <text>Freehand Brush Tool</text>
       <whatsThis></whatsThis>
-      <toolTip></toolTip>
-      <iconText></iconText>
+      <toolTip>Freehand Brush Tool</toolTip>
+      <iconText>Freehand Brush Tool</iconText>
       <activationFlags></activationFlags>
-      <activationConditions>0</activationConditions>
+      <activationConditions></activationConditions>
       <shortcut></shortcut>
       <isCheckable>false</isCheckable>
       <statusTip></statusTip>
