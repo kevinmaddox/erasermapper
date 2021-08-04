@@ -7,7 +7,7 @@ TODO: This
 ## Usage
 First, assign the shortcuts for the plugin by going to `Settings > Configure Krita...` from the menu. Then, go to `Keyboard Shortcuts` and find the shortcuts within the `Scripts > Eraser Mapper` section. You should overwrite your existing, native Eraser and Freehand Brush Tool presets with these. In other words, whatever you're currently using for those tools, make them these instead.<br>
 Then, open the Eraser Mapper settings from the Scripts menu within Krita to configure the plugin.<br>
-<p align="center"><img src="https://raw.githubusercontent.com/kevinmaddox/erasermapper/master/images/config-window.gif" alt="Eraser Mapper configuration window"/></p>
+<p align="center"><img src="https://raw.githubusercontent.com/kevinmaddox/erasermapper/master/images/config-window.png" alt="Eraser Mapper configuration window"/></p>
 Click the `Eraser Preset` image button to select which eraser preset you'd like to use as the primary eraser. Then, in the lists below, find any brushes you want to switch to that eraser preset and move them to the `Will Toggle Brush Preset` list. Finally, check or uncheck the `Enable same-key switching` box depending on the desired behavior. Same-key switching makes it so that, if you hit the eraser shortcut while in eraser mode, you'll be switched back to the last brush you were using. Otherwise, you'll have to hit your assigned Freehand Brush shortcut.
 
 ## Reasoning
