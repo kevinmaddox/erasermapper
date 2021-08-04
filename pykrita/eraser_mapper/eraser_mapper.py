@@ -57,7 +57,7 @@ class EraserMapper(Extension):
         action.triggered.connect(self.action_triggered)
         
         eraserAction = window.createAction(
-            'pykrita_eraser_mapper_toggle_eraser', 'Eraser', '')
+            'pykrita_eraser_mapper_toggle_eraser', 'Set eraser mode', '')
         eraserAction.triggered.connect(self.handleEraser)
         
         lastBrushAction = window.createAction(
@@ -193,6 +193,7 @@ class UIEraserMapper(QDialog):
         # Create checkbox for same-key-switch mode.
         self.sameKeyCheckBox = QCheckBox()
         self.sameKeyCheckBox.setText('Enable same-key switching')
+        self.sameKeyCheckBox.setToolTip('Allows you to, when in erasing mode, switch back to drawing mode by hitting the eraser key again.')
         self.sameKeyCheckBox.setChecked(self.eraserMapper.sameKeyToggle)
         
         # Add OK/Cancel buttons to the window.

@@ -1,6 +1,9 @@
 from PyQt5.QtWidgets import (QGroupBox, QHBoxLayout, QListWidget, QPushButton,
                              QSizePolicy, QSpacerItem, QVBoxLayout)
 
+# This object consists of two list widgets as well as a group of buttons which
+# allow you to move items back and forth between the two lists.
+
 class DualLinkedListWidget(QHBoxLayout):
 
     def __init__(self):

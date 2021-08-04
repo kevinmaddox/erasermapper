@@ -6,10 +6,10 @@
     
     <Action name="pykrita_eraser_mapper_toggle_eraser">
       <icon>draw-eraser</icon>
-      <text>Eraser</text>
+      <text>Set eraser mode</text>
       <whatsThis></whatsThis>
-      <toolTip>Eraser</toolTip>
-      <iconText>Eraser</iconText>
+      <toolTip>Set eraser mode</toolTip>
+      <iconText>Set eraser mode</iconText>
       <activationFlags></activationFlags>
       <activationConditions></activationConditions>
       <shortcut></shortcut>
