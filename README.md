@@ -2,10 +2,10 @@
 Krita plugin that allows you to map specific brush presets to a specified eraser preset while leaving intact the default eraser functionality for others.
 
 ## Installation
-[Please download the latest release and then follow the standard Krita plugin installation as described in the official documentation.](https://docs.krita.org/en/user_manual/python_scripting/install_custom_python_plugin.html#how-to-install-a-python-plugin)
+Please download the latest release and then [follow the standard Krita plugin installation as described in the official documentation.](https://docs.krita.org/en/user_manual/python_scripting/install_custom_python_plugin.html#how-to-install-a-python-plugin)
 
 ## Usage
-Ensure the plugin is active by going to `Settings > Python Plugin Manager` from Kria's menu.
+Ensure the plugin is active by going to `Settings > Python Plugin Manager` from Krita's menu.
 
 Assign the shortcuts for the plugin by going to `Settings > Configure Krita...` from the menu. Then, go to `Keyboard Shortcuts` and find the shortcuts within the `Scripts > Eraser Mapper` section. You should overwrite your existing, native Eraser and Freehand Brush Tool presets with these. In other words, whatever you're currently using for those tools, make them these instead.
 
